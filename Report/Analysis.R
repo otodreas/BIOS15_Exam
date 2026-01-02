@@ -27,7 +27,7 @@ df <- df_full |>
 # Fit model
 m1 <- glm.nb(fruits ~ height, data = df)
 m2 <- glmmTMB(
-  fruits ~ height + (1|Pop), data = df, family = nbinom2()
+  fruits ~ height + (1|Pop) + (1|Block), data = df, family = nbinom2()
 )
 
 # Check support for mixed model
