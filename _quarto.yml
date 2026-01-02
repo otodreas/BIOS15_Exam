@@ -1,0 +1,19 @@
+title: "Title"
+subtitle: "BIOS15 Exam 2025-26"
+author: "Oliver E. Todreas"
+date: "2026/01/14"
+
+format:
+  pdf:
+    pdf-engine: xelatex
+    papersize: A4
+    documentclass: article
+    geometry:
+      - margin=2.5cm
+    mainfont: Helvetica Neue
+    monofont: Menlo
+
+execute:
+  echo: true      
+  message: false 
+  warning: false

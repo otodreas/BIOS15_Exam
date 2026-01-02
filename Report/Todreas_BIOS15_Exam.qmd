@@ -1,0 +1,17 @@
+# Introduction
+
+# Methods
+
+# Results
+
+# Conclusions
+
+# Appendix
+
+Code is available at
+
+TODO: insert github link
+
+```{r}
+#| file: Analysis.R
+```

@@ -1,0 +1,2 @@
+"","Pop","Block","flwsize","FlwDate","height","InflorLen","flowers","aborted","fruits","fitness","openflws","tscent"
+"1","population of origin","experimental block","flower size in mm","flowering date (days since 1 january)","plant height (cm)","inflorescence lenght (cm)","number of flowers","number of aborted flowers","number of fruits produced","fitness (reproductive success) (based on fruit number and weight)","number of simultaneous open flowers","total floral scent emission (ng/l/h)"
