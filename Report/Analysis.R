@@ -1,9 +1,10 @@
 # This script fits a GLM to the dataset provided. The goal of the analysis is
 # to determine how total floral scent emission effects the number of fruits
-# produced
+# produced. The fitness variable doesn't make sense here because to me taller
+# likely means to be heavier--in other words, weight and fitness are correlated
 
 # Clear variables
-rm(list = ls())
+# rm(list = ls())
 
 # Load packages
 library(here, quietly = TRUE)
@@ -11,15 +12,51 @@ library(tidyverse, quietly = TRUE)
 library(glmmTMB, quietly = TRUE)
 
 # Load data
-df <- as_tibble(
+df_full <- as_tibble(
   read.table(
     here("Report", "Data", "penstemon_copy.txt"), header = TRUE, sep = "\t"
   )
 )
 metadata <- read.csv(here("Report", "Data", "metadata.csv"))
 
-# Make grouping variables factors
-df <- mutate(df, across(c(Pop, Block), as.factor))
+# Filter data and make grouped variables factors
+df <- df_full |>
+  select(height, fruits, Pop, Block) |>
+  mutate(across(c(Pop, Block), as.factor))
 
+# Fit model
+m1 <- glm.nb(fruits ~ height, data = df)
+m2 <- glmmTMB(
+  fruits ~ height + (1|Pop), data = df, family = nbinom2()
+)
 
-plot(df$height, df$fruits, col = (df$Pop))
+# Check support for mixed model
+DAIC <- summary(m2)$AIC[1] - m1$aic
+
+# Extract parameter estimates
+params <- summary(m2)$coef$cond
+
+# Generate sequence of input values to generate predictions on
+heights <- seq(min(df$height), max(df$height), length.out = 10)
+preds <- exp(params[1, 1] + params[2, 1] * heights)
+
+# Create plot
+plot(
+  df$height,
+  df$fruits,
+  xlab = "Plant Height (cm)",
+  ylab = "Number of Fruits Produced",
+  col = rgb(0, 0, 0, 0.25),
+  pch = 16
+)
+
+# Create 95% CI ribbon
+polygon(
+  c(heights, rev(heights)),
+  c(preds + 1.96 * params[2, 2], rev(preds - 1.96 * params[2, 2])),
+  border = FALSE,
+  col = rgb(1, 0, 0, 0.25)
+)
+
+# Create sequence of evenly spaced heights and generate predictions
+lines(heights, preds, col = "red", lwd = 1.5)
