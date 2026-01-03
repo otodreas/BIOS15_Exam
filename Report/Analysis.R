@@ -4,7 +4,7 @@
 # likely means to be heavier--in other words, weight and fitness are correlated
 
 # Clear variables
-# rm(list = ls())
+rm(list = ls())
 
 # Load packages
 library(here, quietly = TRUE)
@@ -12,7 +12,7 @@ library(tidyverse, quietly = TRUE)
 library(glmmTMB, quietly = TRUE)
 
 # Load data
-df_full <- as_tibble(
+df <- as_tibble(
   read.table(
     here("Report", "Data", "penstemon_copy.txt"), header = TRUE, sep = "\t"
   )
@@ -20,25 +20,26 @@ df_full <- as_tibble(
 metadata <- read.csv(here("Report", "Data", "metadata.csv"))
 
 # Filter data and make grouped variables factors
-df <- df_full |>
-  select(height, fruits, Pop, Block) |>
-  mutate(across(c(Pop, Block), as.factor))
+mutate(df, across(c(Pop, Block), as.factor))
 
 # Fit model
-m1 <- glm.nb(fruits ~ height, data = df)
+m1 <- glmmTMB(fruits ~ height, data = df, family = nbinom2())
 m2 <- glmmTMB(
   fruits ~ height + (1|Pop) + (1|Block), data = df, family = nbinom2()
 )
 
 # Check support for mixed model
-DAIC <- summary(m2)$AIC[1] - m1$aic
+DAIC <- summary(m2)$AIC[1] - summary(m1)$AIC[1]
 
 # Extract parameter estimates
 params <- summary(m2)$coef$cond
 
 # Generate sequence of input values to generate predictions on
-heights <- seq(min(df$height), max(df$height), length.out = 10)
-preds <- exp(params[1, 1] + params[2, 1] * heights)
+preds <- matrix(seq(min(df$height), max(df$height), length.out = 10))
+preds <- cbind(preds, exp(params[1, 1] + params[2, 1] * preds))
+
+# Using predict function
+preds2 <- predict(m2, newdata = data.frame(height = seq(min(df$height), max(df$height), length.out = 10)), type = "response", se.fit = TRUE, re.form = NA)
 
 # Create plot
 plot(
@@ -50,13 +51,5 @@ plot(
   pch = 16
 )
 
-# Create 95% CI ribbon
-polygon(
-  c(heights, rev(heights)),
-  c(preds + 1.96 * params[2, 2], rev(preds - 1.96 * params[2, 2])),
-  border = FALSE,
-  col = rgb(1, 0, 0, 0.25)
-)
-
 # Create sequence of evenly spaced heights and generate predictions
-lines(heights, preds, col = "red", lwd = 1.5)
+lines(preds, col = "red")
