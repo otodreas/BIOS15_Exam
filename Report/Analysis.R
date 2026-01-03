@@ -8,19 +8,17 @@ rm(list = ls())
 
 # Load packages
 library(here, quietly = TRUE)
-library(tidyverse, quietly = TRUE)
 library(glmmTMB, quietly = TRUE)
 
 # Load data
-df <- as_tibble(
-  read.table(
-    here("Report", "Data", "penstemon_copy.txt"), header = TRUE, sep = "\t"
-  )
+df <- read.table(
+  here("Report", "Data", "penstemon_copy.txt"), header = TRUE, sep = "\t"
 )
 metadata <- read.csv(here("Report", "Data", "metadata.csv"))
 
-# Filter data and make grouped variables factors
-mutate(df, across(c(Pop, Block), as.factor))
+# Make grouped variables factors
+df$Pop <- as.factor(df$Pop)
+df$Block <- as.factor(df$Block)
 
 # Fit model
 m1 <- glmmTMB(fruits ~ height, data = df, family = nbinom2())
@@ -34,12 +32,21 @@ DAIC <- summary(m2)$AIC[1] - summary(m1)$AIC[1]
 # Extract parameter estimates
 params <- summary(m2)$coef$cond
 
-# Generate sequence of input values to generate predictions on
-preds <- matrix(seq(min(df$height), max(df$height), length.out = 10))
-preds <- cbind(preds, exp(params[1, 1] + params[2, 1] * preds))
+# Create data frame with sequence to generate new predictions on
+# Ensure the structure of new_data is identical to that of the original data
+new_data <- data.frame(
+  height = seq(min(df$height), max(df$height), length.out = 15),
+  Pop = factor(NA, levels = levels(df$Pop)),
+  Block = factor(NA, levels = levels(df$Block))
+)
 
-# Using predict function
-preds2 <- predict(m2, newdata = data.frame(height = seq(min(df$height), max(df$height), length.out = 10)), type = "response", se.fit = TRUE, re.form = NA)
+# Generate predictions and standard error estimates
+pred <- predict(
+  m2,
+  newdata = new_data,
+  type = "response",
+  se.fit = TRUE
+)
 
 # Create plot
 plot(
@@ -51,5 +58,13 @@ plot(
   pch = 16
 )
 
-# Create sequence of evenly spaced heights and generate predictions
-lines(preds, col = "red")
+# Draw 95% CI ribbon
+polygon(
+  c(new_data$height, rev(new_data$height)),
+  c(pred$fit + 1.96 * pred$se.fit, rev(pred$fit - 1.96 * pred$se.fit)),
+  border = FALSE,
+  col = rgb(1, 0, 0, 0.25)
+)
+
+# Draw regression line
+lines(new_data$height, pred$fit, col = "red")
