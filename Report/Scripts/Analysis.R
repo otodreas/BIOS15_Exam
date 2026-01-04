@@ -29,9 +29,8 @@ m <- glmmTMB(
   fruits ~ height + (1|Pop) + (1|Block), data = df, family = nbinom2()
 )
 
-
 # Get pseudo-r^2
-pseudo_r2 <- r.squaredGLMM(m)
+trigamma_pseudo_r2 <- r.squaredGLMM(m)[3,]
 
 # Extract parameter estimates
 params <- summary(m)$coef$cond
