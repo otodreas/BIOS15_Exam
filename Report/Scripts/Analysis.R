@@ -9,6 +9,10 @@ rm(list = ls())
 # Load packages
 library(here, quietly = TRUE)
 library(glmmTMB, quietly = TRUE)
+library(MuMIn, quietly = TRUE)
+
+# Supress update warning from MuMIn
+options(MuMIn.noUpdateWarning = TRUE)
 
 # Load data
 df <- read.table(
@@ -21,16 +25,16 @@ df$Pop <- as.factor(df$Pop)
 df$Block <- as.factor(df$Block)
 
 # Fit model
-m1 <- glmmTMB(fruits ~ height, data = df, family = nbinom2())
-m2 <- glmmTMB(
+m <- glmmTMB(
   fruits ~ height + (1|Pop) + (1|Block), data = df, family = nbinom2()
 )
 
-# Check support for mixed model
-DAIC <- summary(m2)$AIC[1] - summary(m1)$AIC[1]
+
+# Get pseudo-r^2
+pseudo_r2 <- r.squaredGLMM(m)
 
 # Extract parameter estimates
-params <- summary(m2)$coef$cond
+params <- summary(m)$coef$cond
 
 # Create data frame with sequence to generate new predictions on
 # Ensure the structure of new_data is identical to that of the original data
@@ -42,7 +46,7 @@ new_data <- data.frame(
 
 # Generate predictions and standard error estimates
 pred <- predict(
-  m2,
+  m,
   newdata = new_data,
   type = "response",
   se.fit = TRUE
