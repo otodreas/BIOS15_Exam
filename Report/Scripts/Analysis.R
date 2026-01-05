@@ -81,20 +81,16 @@ names(preds) <- levels(df$Pop)
 # ==================================
 
 # Get pseudo-r^2
-cat(r.squaredGLMM(m)[3, 2], file = here("Report", "Output", "summary.txt"))
+# cat(r.squaredGLMM(m)[3, 2], file = here("Report", "Output", "summary.txt"))
 
 # Perform variance partitioning
-
-VarAmongPop <- attr(VarCorr(m)$cond$Pop, "stddev")^2
 VarAmongBlock <- attr(VarCorr(m)$cond$Block, "stddev")^2
 VarWithinGroups <- attr(VarCorr(m)$cond, "sc")^2
-PctVarExpByPop <- VarAmongPop/(VarAmongPop + VarAmongBlock + VarWithinGroups)*100
-PctVarExpByBlock <- VarAmongBlock/(VarAmongPop + VarAmongBlock + VarWithinGroups)*100
+PctVarExpByBlock <- VarAmongBlock/(VarAmongBlock + VarWithinGroups)*100
 
-CV2_Pop = VarAmongPop/mean(df$aborted)^2
-CV2_Block = VarAmongBlock/mean(df$aborted)^2
-CV2_Within = VarWithinGroups/mean(df$aborted)^2
-CV2_Total = CV2_Pop + CV2_Block + CV2_Within
+CV2_Block <- VarAmongBlock/mean(df$log_fitness)^2
+CV2_Within <- VarWithinGroups/mean(df$log_fitness)^2
+CV2_Total <- CV2_Block + CV2_Within
 
 
 # ==================
