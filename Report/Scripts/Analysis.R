@@ -13,6 +13,7 @@ rm(list = ls())
 
 # Load packages
 library(here, quietly = TRUE)
+library(tidyverse, quietly = TRUE)
 library(glmmTMB, quietly = TRUE)
 library(performance, quietly = TRUE)
 library(MuMIn, quietly = TRUE)
@@ -21,17 +22,17 @@ library(MuMIn, quietly = TRUE)
 options(MuMIn.noUpdateWarning = TRUE)
 
 # Load raw data
-df <- read.table(
-  here("Report", "Data", "penstemon_copy.txt"), header = TRUE, sep = "\t"
-)
+df <- as_tibble(
+  read.table(here("Report", "Data", "penstemon_copy.txt"), header = TRUE)
+) |>
+  mutate(across(c(Pop, Block), as.factor)) |>  # Make grouped variables factors
+  filter(tscent != 0) |>  # Drop tscent values whose logarithms are undefined
+  mutate(log_tscent = log(tscent)) |>  # Create log_tscent column
+  mutate(log_fitness = log(fitness))  # Create log_fitness column
 
 # Load metadata file for column lookup
 # TODO: delete this when no longer needed
 metadata <- read.csv(here("Report", "Data", "metadata.csv"))
-
-# Make grouped variables factors
-df$Pop <- as.factor(df$Pop)
-df$Block <- as.factor(df$Block)
 
 
 # =========================================
@@ -40,7 +41,7 @@ df$Block <- as.factor(df$Block)
 
 # Fit model
 m <- glmmTMB(
-  aborted ~ 1 + (1|Pop) + (1|Block), data = df, family = nbinom2()
+  log_fitness ~ log_tscent + Pop + (1|Block), data = df
 )
 
 
@@ -51,8 +52,8 @@ m <- glmmTMB(
 # Create data frame with sequence to generate new predictions on
 # Ensure the structure of new_data is identical to that of the original data
 new_data <- data.frame(
-  height = seq(min(df$height), max(df$height), length.out = 15),
-  Pop = factor(NA, levels = levels(df$Pop)),
+  log_tscent = seq(min(df$log_tscent), max(df$log_tscent), length.out = 15),
+  Pop = factor(NA, levels = levels(df$Pop)[1]),
   Block = factor(NA, levels = levels(df$Block))
 )
 
@@ -89,6 +90,15 @@ CV2_Total = CV2_Pop + CV2_Block + CV2_Within
 # ==================
 # DRAW AND SAVE PLOT
 # ==================
+
+
+newx = seq(min(x1), max(x1), length.out=200)
+plot(x1, y, col=as.numeric(groupID), las=1)
+for(i in 1:length(levels(groupID))){
+  y_hat = coef(m)$cond$groupID[i,1] + coef(m)$cond$groupID[i,2]*newx
+  lines(newx, y_hat, col=i)
+}
+
 
 # Create plot
 plot(
