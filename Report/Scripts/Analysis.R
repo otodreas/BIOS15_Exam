@@ -40,9 +40,7 @@ metadata <- read.csv(here("Report", "Data", "metadata.csv"))
 # =========================================
 
 # Fit model
-m <- glmmTMB(
-  log_fitness ~ log_tscent + Pop + (1|Block), data = df
-)
+m <- glmmTMB(log_fitness ~ log_tscent + Pop + (1|Block), data = df)
 
 
 # ================================
