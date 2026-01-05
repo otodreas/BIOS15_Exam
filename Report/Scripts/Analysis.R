@@ -51,19 +51,31 @@ m <- glmmTMB(
 
 # Create data frame with sequence to generate new predictions on
 # Ensure the structure of new_data is identical to that of the original data
-new_data <- data.frame(
-  log_tscent = seq(min(df$log_tscent), max(df$log_tscent), length.out = 15),
-  Pop = factor(NA, levels = levels(df$Pop)[1]),
-  Block = factor(NA, levels = levels(df$Block))
-)
+new_data <- list()
+
+for (i in seq_along(levels(df$Pop))) {
+  new_data[[i]] <- tibble(
+    log_tscent = seq(min(df$log_tscent), max(df$log_tscent), length.out = 15),
+    Pop = factor(rep(levels(df$Pop)[i], 15))
+  )
+}
+
+names(new_data) <- levels(df$Pop)
 
 # Generate predictions and standard error estimates
-pred <- predict(
-  m,
-  newdata = new_data,
-  type = "response",  # Calculate predictions on response scale
-  se.fit = TRUE
-)
+preds <- list()
+
+for (i in seq_along(new_data)) {
+  preds[[i]] <- predict(
+    m,
+    newdata = new_data[[i]],
+    type = "response",  # Calculate predictions on response scale
+    se.fit = TRUE,
+    re.form = NA  # Do not include random effects
+  )
+}
+
+names(preds) <- levels(df$Pop)
 
 
 # ==================================
@@ -91,32 +103,34 @@ CV2_Total = CV2_Pop + CV2_Block + CV2_Within
 # DRAW AND SAVE PLOT
 # ==================
 
-
-newx = seq(min(x1), max(x1), length.out=200)
-plot(x1, y, col=as.numeric(groupID), las=1)
-for(i in 1:length(levels(groupID))){
-  y_hat = coef(m)$cond$groupID[i,1] + coef(m)$cond$groupID[i,2]*newx
-  lines(newx, y_hat, col=i)
-}
-
-
 # Create plot
 plot(
-  df$height,
-  df$aborted,
-  xlab = "Plant Height (cm)",
-  ylab = "Number of Aborted Flowers",
-  col = rgb(0, 0, 0, 0.25),
-  pch = 16
+  df$log_tscent,
+  df$log_fitness,
+  xlab = "ln(Total floral scent emission (ng/L/h))",
+  ylab = "ln(Fitness)",
+  col = df$Pop
 )
 
-# Draw 95% CI ribbon
-polygon(
-  c(new_data$height, rev(new_data$height)),
-  c(pred$fit + 1.96 * pred$se.fit, rev(pred$fit - 1.96 * pred$se.fit)),
-  border = FALSE,
-  col = rgb(1, 0, 0, 0.25)
+# Draw legend
+legend(
+  "bottomleft",
+  legend = levels(df$Pop),
+  col = seq_along(levels(df$Pop)),
+  lty = 1,
+  bty = "n",
+  title = "Population"
 )
 
-# Draw regression line
-lines(new_data$height, pred$fit, col = "red")
+# # Draw 95% CI ribbons
+# polygon(
+#   c(new_data$height, rev(new_data$height)),
+#   c(pred$fit + 1.96 * pred$se.fit, rev(pred$fit - 1.96 * pred$se.fit)),
+#   border = FALSE,
+#   col = rgb(1, 0, 0, 0.25)
+# )
+
+# Draw regression lines
+for (i in seq_along(preds)) {
+  lines(new_data[[i]]$log_tscent, preds[[i]]$fit, col = i)
+}
