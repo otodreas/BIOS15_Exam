@@ -133,14 +133,24 @@ params[4, 2] <- params[1, 2] + params[4, 2]
 write_csv(params, params_path)
 
 # Define function to return preditions on data scale for a given group
-make_pred <- function(x_in, pop) {
+make_pred <- function(x_in) {
   # Ensure that each population is paired with the position of the parameter in
   # the params tibble
   pops <- list(1, 3, 4)
   names(pops) <- levels(df$Pop)
-  exp(log(x_in) * params[2, 2] + params[pops[pop][[1]], 2])
+  estimates <- matrix(nrow = 3, ncol = 2)
+  row <- 0
+  for (i in levels(df$Pop)) {
+    row <- row + 1
+    estimate <- as.numeric(exp(log(x_in) * params[2, 2] + params[pops[[i]], 2]))
+    estimates[row, ] <- c(x_in, estimate)
+  }
+  colnames(estimates) <- c("Input", "Prediction")
+  rownames(estimates) <- levels(df$Pop)
+  estimates
 }
 
+# TODO: get new predictions for text, IQR?
 # Write example calculations into a file
 cat("", file = example_path)  # Clear the file
 
