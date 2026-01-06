@@ -13,6 +13,7 @@ rm(list = ls())
 
 # Load packages
 library(here, quietly = TRUE)
+library(tidyverse, quietly = TRUE)
 library(glmmTMB, quietly = TRUE)
 library(performance, quietly = TRUE)
 library(MuMIn, quietly = TRUE)
@@ -21,92 +22,125 @@ library(MuMIn, quietly = TRUE)
 options(MuMIn.noUpdateWarning = TRUE)
 
 # Load raw data
-df <- read.table(
-  here("Report", "Data", "penstemon_copy.txt"), header = TRUE, sep = "\t"
-)
+df <- as_tibble(
+  read.table(here("Report", "Data", "penstemon_copy.txt"), header = TRUE)
+) |>
+  mutate(across(c(Pop, Block), as.factor)) |>  # Make grouped variables factors
+  filter(tscent != 0) |>  # Drop tscent values whose logarithms are undefined
+  mutate(log_tscent = log(tscent)) |>  # Create log_tscent column
+  mutate(log_fitness = log(fitness))  # Create log_fitness column
 
 # Load metadata file for column lookup
 # TODO: delete this when no longer needed
 metadata <- read.csv(here("Report", "Data", "metadata.csv"))
 
-# Make grouped variables factors
-df$Pop <- as.factor(df$Pop)
-df$Block <- as.factor(df$Block)
 
-
-# =========================================
-# FIT MODEL AND EXTRACT PARAMETER ESTIMATES
-# =========================================
+# ==================================
+# FIT MODEL AND GENERATE PREDICTIONS
+# ==================================
 
 # Fit model
-m <- glmmTMB(
-  aborted ~ 1 + (1|Pop) + (1|Block), data = df, family = nbinom2()
-)
+m <- glmmTMB(log_fitness ~ log_tscent + Pop + (1|Block), data = df)
 
+# Create data frames with sequences to generate new predictions on for each pop
+new_data <- list()
 
-# ================================
-# GENERATE PREDICTIONS USING MODEL
-# ================================
+for (i in seq_along(levels(df$Pop))) {
+  new_data[[i]] <- tibble(
+    log_tscent = seq(min(df$log_tscent), max(df$log_tscent), length.out = 15),
+    Pop = factor(rep(levels(df$Pop)[i], 15))
+  )
+}
 
-# Create data frame with sequence to generate new predictions on
-# Ensure the structure of new_data is identical to that of the original data
-new_data <- data.frame(
-  height = seq(min(df$height), max(df$height), length.out = 15),
-  Pop = factor(NA, levels = levels(df$Pop)),
-  Block = factor(NA, levels = levels(df$Block))
-)
+names(new_data) <- levels(df$Pop)
 
 # Generate predictions and standard error estimates
-pred <- predict(
-  m,
-  newdata = new_data,
-  type = "response",  # Calculate predictions on response scale
-  se.fit = TRUE
+preds <- list()
+
+for (i in seq_along(new_data)) {
+  preds[[i]] <- predict(
+    m,
+    newdata = new_data[[i]],
+    type = "response",  # Calculate predictions on response scale
+    se.fit = TRUE,
+    re.form = NA  # Do not include random effects
+  )
+}
+
+names(preds) <- levels(df$Pop)
+
+
+# ===================================
+# BUILD SUMMARY STATISTICS TEXT FILES
+# ===================================
+
+# Assign variances to a vector
+v_part <- c(attr(VarCorr(m)$cond$Block, "stddev")^2, attr(VarCorr(m)$cond, "sc")^2)
+
+# Build summary file
+cat(
+  paste0(
+    # R^2
+    "R^2",
+    "\nMarginal: ", r.squaredGLMM(m)[1],
+    "\nConditional: ", r.squaredGLMM(m)[2],
+    
+    # Variance partitioning
+    "\n\nVariance partitioning",
+    "\nVariance among blocks: ", v_part[1],
+    "\nVariance within groups: ", v_part[2],
+    "\n% variance explained by block: ", v_part[1] / sum(v_part) * 100
+  ),
+  file = here("Report", "Output", "summary.txt")
 )
 
+# Build parameters tibble
+params <- as_tibble(summary(m)$coefficients$cond[, 1:2]) |>
+  mutate(
+    Parameter = c(
+      "PopNR intercept (ln(Fitness))",
+      "Slope (ln(Fitness)/ln(Total floral scent emission (ng/L/h)))",
+      "PopTH intercept (ln(Fitness))",
+      "PopWF intercept (ln(Fitness))"
+    )
+  ) |>
+  relocate(Parameter)
 
-# ==================================
-# BUILD SUMMARY STATISTICS TEXT FILE
-# ==================================
+# Make every population's intercept absolute rather than relative
+params[3, 2] <- params[1, 2] + params[3, 2]
+params[4, 2] <- params[1, 2] + params[4, 2]
 
-# Get pseudo-r^2
-cat(r.squaredGLMM(m)[3, 2], file = here("Report", "Output", "summary.txt"))
-
-# Perform variance partitioning
-
-VarAmongPop <- attr(VarCorr(m)$cond$Pop, "stddev")^2
-VarAmongBlock <- attr(VarCorr(m)$cond$Block, "stddev")^2
-VarWithinGroups <- attr(VarCorr(m)$cond, "sc")^2
-PctVarExpByPop <- VarAmongPop/(VarAmongPop + VarAmongBlock + VarWithinGroups)*100
-PctVarExpByBlock <- VarAmongBlock/(VarAmongPop + VarAmongBlock + VarWithinGroups)*100
-
-CV2_Pop = VarAmongPop/mean(df$aborted)^2
-CV2_Block = VarAmongBlock/mean(df$aborted)^2
-CV2_Within = VarWithinGroups/mean(df$aborted)^2
-CV2_Total = CV2_Pop + CV2_Block + CV2_Within
+# Write parameters to file
+write_csv(params, here("Report", "Output", "params.csv"))
 
 
-# ==================
-# DRAW AND SAVE PLOT
-# ==================
+# =========
+# DRAW PLOT
+# =========
 
 # Create plot
 plot(
-  df$height,
-  df$aborted,
-  xlab = "Plant Height (cm)",
-  ylab = "Number of Aborted Flowers",
-  col = rgb(0, 0, 0, 0.25),
-  pch = 16
+  df$log_tscent,
+  df$log_fitness,
+  xlab = "ln(Total floral scent emission (ng/L/h))",
+  ylab = "ln(Fitness)",
+  col = adjustcolor(seq_along(levels(df$Pop)), alpha.f = 0.5),
+  pch = 19,
 )
 
-# Draw 95% CI ribbon
-polygon(
-  c(new_data$height, rev(new_data$height)),
-  c(pred$fit + 1.96 * pred$se.fit, rev(pred$fit - 1.96 * pred$se.fit)),
-  border = FALSE,
-  col = rgb(1, 0, 0, 0.25)
+# Draw legend
+legend(
+  "bottomright",
+  legend = levels(df$Pop),
+  col = seq_along(levels(df$Pop)),
+  lty = 1,
+  bty = "n",
+  title = "Population"
 )
 
-# Draw regression line
-lines(new_data$height, pred$fit, col = "red")
+# Draw regression lines
+for (i in seq_along(preds)) {
+  lines(new_data[[i]]$log_tscent, preds[[i]]$fit, col = i)
+}; rm(i)
+
+# NOTE: Plots were saved using RStudio/Positron interface

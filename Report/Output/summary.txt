@@ -1,1 +1,8 @@
-0.1226108
+R^2
+Marginal: 0.0911515581659459
+Conditional: 0.259996794132899
+
+Variance partitioning
+Variance among blocks: 0.0499448527288433
+Variance within groups: 0.218894841327582
+% variance explained by block: 18.5779309503159
