@@ -1,0 +1,5 @@
+Parameter,Estimate,Std. Error
+PopNR intercept (ln(Fitness)),4.171751483252192,0.12296653071631565
+Slope (ln(Fitness)/ln(Total floral scent emission (ng/L/h))),0.15540233383809213,0.05111762710345425
+PopTH intercept (ln(Fitness)),4.142770256843613,0.12744428404448496
+PopWF intercept (ln(Fitness)),4.212044048363447,0.12544834729186766

@@ -35,20 +35,14 @@ df <- as_tibble(
 metadata <- read.csv(here("Report", "Data", "metadata.csv"))
 
 
-# =========================================
-# FIT MODEL AND EXTRACT PARAMETER ESTIMATES
-# =========================================
+# ==================================
+# FIT MODEL AND GENERATE PREDICTIONS
+# ==================================
 
 # Fit model
 m <- glmmTMB(log_fitness ~ log_tscent + Pop + (1|Block), data = df)
 
-
-# ================================
-# GENERATE PREDICTIONS USING MODEL
-# ================================
-
-# Create data frame with sequence to generate new predictions on
-# Ensure the structure of new_data is identical to that of the original data
+# Create data frames with sequences to generate new predictions on for each pop
 new_data <- list()
 
 for (i in seq_along(levels(df$Pop))) {
@@ -76,26 +70,53 @@ for (i in seq_along(new_data)) {
 names(preds) <- levels(df$Pop)
 
 
-# ==================================
-# BUILD SUMMARY STATISTICS TEXT FILE
-# ==================================
+# ===================================
+# BUILD SUMMARY STATISTICS TEXT FILES
+# ===================================
 
-# Get pseudo-r^2
-# cat(r.squaredGLMM(m)[3, 2], file = here("Report", "Output", "summary.txt"))
+# Assign variances to a vector
+v_part <- c(attr(VarCorr(m)$cond$Block, "stddev")^2, attr(VarCorr(m)$cond, "sc")^2)
 
-# Perform variance partitioning
-VarAmongBlock <- attr(VarCorr(m)$cond$Block, "stddev")^2
-VarWithinGroups <- attr(VarCorr(m)$cond, "sc")^2
-PctVarExpByBlock <- VarAmongBlock/(VarAmongBlock + VarWithinGroups)*100
+# Build summary file
+cat(
+  paste0(
+    # R^2
+    "R^2",
+    "\nMarginal: ", r.squaredGLMM(m)[1],
+    "\nConditional: ", r.squaredGLMM(m)[2],
+    
+    # Variance partitioning
+    "\n\nVariance partitioning",
+    "\nVariance among blocks: ", v_part[1],
+    "\nVariance within groups: ", v_part[2],
+    "\n% variance explained by block: ", v_part[1] / sum(v_part) * 100
+  ),
+  file = here("Report", "Output", "summary.txt")
+)
 
-CV2_Block <- VarAmongBlock/mean(df$log_fitness)^2
-CV2_Within <- VarWithinGroups/mean(df$log_fitness)^2
-CV2_Total <- CV2_Block + CV2_Within
+# Build parameters tibble
+params <- as_tibble(summary(m)$coefficients$cond[, 1:2]) |>
+  mutate(
+    Parameter = c(
+      "PopNR intercept (ln(Fitness))",
+      "Slope (ln(Fitness)/ln(Total floral scent emission (ng/L/h)))",
+      "PopTH intercept (ln(Fitness))",
+      "PopWF intercept (ln(Fitness))"
+    )
+  ) |>
+  relocate(Parameter)
+
+# Make every population's intercept absolute rather than relative
+params[3, 2] <- params[1, 2] + params[3, 2]
+params[4, 2] <- params[1, 2] + params[4, 2]
+
+# Write parameters to file
+write_csv(params, here("Report", "Output", "params.csv"))
 
 
-# ==================
-# DRAW AND SAVE PLOT
-# ==================
+# =========
+# DRAW PLOT
+# =========
 
 # Create plot
 plot(
@@ -103,12 +124,13 @@ plot(
   df$log_fitness,
   xlab = "ln(Total floral scent emission (ng/L/h))",
   ylab = "ln(Fitness)",
-  col = df$Pop
+  col = adjustcolor(seq_along(levels(df$Pop)), alpha.f = 0.5),
+  pch = 19,
 )
 
 # Draw legend
 legend(
-  "bottomleft",
+  "bottomright",
   legend = levels(df$Pop),
   col = seq_along(levels(df$Pop)),
   lty = 1,
@@ -116,15 +138,9 @@ legend(
   title = "Population"
 )
 
-# # Draw 95% CI ribbons
-# polygon(
-#   c(new_data$height, rev(new_data$height)),
-#   c(pred$fit + 1.96 * pred$se.fit, rev(pred$fit - 1.96 * pred$se.fit)),
-#   border = FALSE,
-#   col = rgb(1, 0, 0, 0.25)
-# )
-
 # Draw regression lines
 for (i in seq_along(preds)) {
   lines(new_data[[i]]$log_tscent, preds[[i]]$fit, col = i)
-}
+}; rm(i)
+
+# NOTE: Plots were saved using RStudio/Positron interface
