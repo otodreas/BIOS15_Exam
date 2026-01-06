@@ -1,6 +1,6 @@
 R^2
-Marginal: 0.0911515581659459
-Conditional: 0.259996794132899
+Marginal (represents variance explained only by the fixed effects): 0.0911515581659459
+Conditional (represents variance explained by the whole model): 0.259996794132899
 
 Variance partitioning
 Variance among blocks: 0.0499448527288433

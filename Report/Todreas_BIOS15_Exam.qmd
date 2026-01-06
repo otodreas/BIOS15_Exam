@@ -8,10 +8,22 @@
 
 # Appendix
 
-Code is available at
+The repository for this project can be found at [github.com/otodreas/BIOS15_Exam/](https://github.com/otodreas/BIOS15_Exam/)
 
-TODO: insert github link
+The script, data, and the report itself can be found in the GitHub repo at the following locations
+
+```
+root/
+└── Report/
+    ├── Scripts/
+    │   └── Analysis.R
+    ├── Data/
+    │   └── penstemon_copy.txt
+    └── Todreas_BIOS15_Exam.pdf
+```
+
+Below is a copy of the script for reference
 
 ```{r}
-#| file: Analysis.R
+#| file: Scripts/Analysis.R
 ```

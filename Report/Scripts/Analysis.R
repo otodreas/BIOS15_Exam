@@ -1,7 +1,8 @@
 # This script fits a GLM to the dataset provided. The goal of the analysis is
-# to determine how total floral scent emission effects the number of fruits
-# produced. The fitness variable doesn't make sense here because to me taller
-# likely means to be heavier--in other words, weight and fitness are correlated
+# to determine how total floral scent emission effects a plant's fitness. Users 
+# who do not clone the entire repo but instead just download the script will
+# need to provide custom filepaths. The data file can be found at
+# root/Report/Data/penstemon_copy.txt
 
 
 # ===================================
@@ -15,7 +16,6 @@ rm(list = ls())
 library(here, quietly = TRUE)
 library(tidyverse, quietly = TRUE)
 library(glmmTMB, quietly = TRUE)
-library(performance, quietly = TRUE)
 library(MuMIn, quietly = TRUE)
 
 # Supress update warning from MuMIn
@@ -82,8 +82,10 @@ cat(
   paste0(
     # R^2
     "R^2",
-    "\nMarginal: ", r.squaredGLMM(m)[1],
-    "\nConditional: ", r.squaredGLMM(m)[2],
+    "\nMarginal (represents variance explained only by the fixed effects): ",
+    r.squaredGLMM(m)[1],
+    "\nConditional (represents variance explained by the whole model): ",
+    r.squaredGLMM(m)[2],
     
     # Variance partitioning
     "\n\nVariance partitioning",
@@ -95,7 +97,7 @@ cat(
 )
 
 # Build parameters tibble
-params <- as_tibble(summary(m)$coefficients$cond[, 1:2]) |>
+params <- as_tibble(summary(m)$coefficients$cond[, 1:2]) |>  # Get params & SE
   mutate(
     Parameter = c(
       "PopNR intercept (ln(Fitness))",
@@ -103,7 +105,7 @@ params <- as_tibble(summary(m)$coefficients$cond[, 1:2]) |>
       "PopTH intercept (ln(Fitness))",
       "PopWF intercept (ln(Fitness))"
     )
-  ) |>
+  ) |>  # Create parameter names that make sense and move the column left
   relocate(Parameter)
 
 # Make every population's intercept absolute rather than relative
