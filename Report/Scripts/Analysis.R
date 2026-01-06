@@ -5,9 +5,9 @@
 # root/Report/Data/penstemon_copy.txt
 
 
-# ===================================
-# CONFIGURE ENVIRONMENT AND LOAD DATA
-# ===================================
+# =====================
+# CONFIGURE ENVIRONMENT
+# =====================
 
 # Clear variables
 rm(list = ls())
@@ -18,22 +18,32 @@ library(tidyverse)
 library(glmmTMB)
 library(MuMIn)
 
-# Supress update warning from MuMIn
+# Supress update warning from MuMIn because all the variables used in the
+# original model call have the same values as when the model was fitted
 options(MuMIn.noUpdateWarning = TRUE)
 
 # Set filepaths
 data_path <- here("Report", "Data", "penstemon_copy.txt")
 summary_path <- here("Report", "Output", "summary.txt")
 params_path <- here("Report", "Output", "params.csv")
+example_path <- here("Report", "Output", "example.txt")
+
+
+# =========
+# LOAD DATA
+# =========
 
 # Load raw data
 df <- as_tibble(
   read.table(data_path, header = TRUE)
 ) |>
+  select(Pop, Block, tscent, fitness) |>  # Select relevant columns
   mutate(across(c(Pop, Block), as.factor)) |>  # Make grouped variables factors
-  filter(tscent != 0) |>  # Drop tscent values whose logarithms are undefined
+  filter(tscent != 0 & fitness != 0) |>  # Drop values whose log is undefined
   mutate(log_tscent = log(tscent)) |>  # Create log_tscent column
   mutate(log_fitness = log(fitness))  # Create log_fitness column
+
+# NOTE: one row is
 
 # NOTE: Elasticity = for a 1% change in x (tscent), a x% change in y (fitness)
 # is expected ("Percent change in y per percent change in x")
@@ -66,6 +76,8 @@ for (i in seq_along(new_data)) {
   preds[[i]] <- predict(
     m,
     newdata = new_data[[i]],
+    
+    # TODO: check if theres a way to generate predictions on data scale
     type = "response",  # Calculate predictions on response scale
     se.fit = TRUE,
     re.form = NA  # Do not include random effects in predictions
@@ -120,6 +132,37 @@ params[4, 2] <- params[1, 2] + params[4, 2]
 # Write parameters to file
 write_csv(params, params_path)
 
+# Define function to return preditions on data scale for a given group
+make_pred <- function(x_in, pop) {
+  # Ensure that each population is paired with the position of the parameter in
+  # the params tibble
+  pops <- list(1, 3, 4)
+  names(pops) <- levels(df$Pop)
+  exp(log(x_in) * params[2, 2] + params[pops[pop][[1]], 2])
+}
+
+# Write example calculations into a file
+cat("", file = example_path)  # Clear the file
+
+# Loop through populations
+for (i in levels(df$Pop)) {
+  # Get smallest and largest observed values for tscent
+  ranges <- df |>
+    filter(Pop == i) |>
+    pull(tscent) |>
+    range()
+
+  # Populate file with predictions on data scale
+  cat(paste0(i, "\n"), file = example_path, append = TRUE)
+  for (j in ranges) {
+    cat(
+      paste0("tscent: ", j, "\tprediction: ", make_pred(j, i), "\n"),
+      file = example_path,
+      append = TRUE
+    )
+  }
+}
+
 
 # =========
 # DRAW PLOT
@@ -137,12 +180,14 @@ plot(
 
 # Draw legend
 legend(
-  "top",
+  "topleft",
   legend = levels(df$Pop),
-  col = seq_along(levels(df$Pop)),
-  lty = 1,
+  col = adjustcolor(seq_along(levels(df$Pop)), alpha.f = 0.4),
+  pch = 19,
   bty = "n",
-  title = "Population"
+  horiz = TRUE,
+  title = "Population",
+  inset = 0.02
 )
 
 # Draw 95% CI ribbons on data scale
@@ -150,10 +195,10 @@ for (i in seq_along(preds)) {
   polygon(
     c(exp(new_data[[i]]$log_tscent), rev(exp(new_data[[i]]$log_tscent))),
     c(
-      exp(preds[[i]]$fit) + 1.96 * exp(preds[[i]]$se.fit),
-      rev(exp(preds[[i]]$fit) - 1.96 * exp(preds[[i]]$se.fit))
+      exp(preds[[i]]$fit + 1.96 * preds[[i]]$se.fit),
+      rev(exp(preds[[i]]$fit - 1.96 * preds[[i]]$se.fit))
     ),
-    col = adjustcolor(i, alpha.f = 0.25),
+    col = adjustcolor(i, alpha.f = 0.15),
     border = FALSE
   )
 }
