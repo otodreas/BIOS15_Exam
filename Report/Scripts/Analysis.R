@@ -30,9 +30,9 @@ df <- as_tibble(
   mutate(log_tscent = log(tscent)) |>  # Create log_tscent column
   mutate(log_fitness = log(fitness))  # Create log_fitness column
 
-# Load metadata file for column lookup
-# TODO: delete this when no longer needed
-metadata <- read.csv(here("Report", "Data", "metadata.csv"))
+# NOTE: Elasticity = for a 1% change in x (tscent), a x% change in y (fitness)
+# is expected ("Percent change in y per percent change in x")
+# TODO: double check with course literature
 
 
 # ==================================
