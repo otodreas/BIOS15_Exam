@@ -1,9 +1,0 @@
-NR
-tscent: 0.1899	prediction: 50.0783192837617
-tscent: 25.7826	prediction: 107.421722932387
-TH
-tscent: 0.6917	prediction: 59.4709821828113
-tscent: 49.3477	prediction: 115.430318205535
-WF
-tscent: 0.4537	prediction: 59.6937077452219
-tscent: 50.9847	prediction: 124.339073844201

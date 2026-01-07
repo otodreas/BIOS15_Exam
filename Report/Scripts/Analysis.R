@@ -26,7 +26,6 @@ options(MuMIn.noUpdateWarning = TRUE)
 data_path <- here("Report", "Data", "penstemon_copy.txt")
 summary_path <- here("Report", "Output", "summary.txt")
 params_path <- here("Report", "Output", "params.csv")
-example_path <- here("Report", "Output", "example.txt")
 
 
 # =========
@@ -43,7 +42,7 @@ df <- as_tibble(
   mutate(log_tscent = log(tscent)) |>  # Create log_tscent column
   mutate(log_fitness = log(fitness))  # Create log_fitness column
 
-# NOTE: one row is
+# NOTE: one row is dropped for 0 values
 
 # NOTE: Elasticity = for a 1% change in x (tscent), a x% change in y (fitness)
 # is expected ("Percent change in y per percent change in x")
@@ -85,6 +84,53 @@ for (i in seq_along(new_data)) {
 }
 
 names(preds) <- levels(df$Pop)
+
+
+# =========
+# DRAW PLOT
+# =========
+
+# Create plot on data scale
+plot(
+  df$tscent,
+  df$fitness,
+  xlab = "Total floral scent emission (ng/L/h)",
+  ylab = "Reproductive success",
+  col = adjustcolor(seq_along(levels(df$Pop)), alpha.f = 0.4),
+  pch = 19,
+)
+
+# Draw legend
+legend(
+  "topleft",
+  legend = levels(df$Pop),
+  col = adjustcolor(seq_along(levels(df$Pop)), alpha.f = 0.4),
+  pch = 19,
+  bty = "n",
+  horiz = TRUE,
+  title = "Population",
+  inset = 0.02
+)
+
+# Draw 95% CI ribbons on data scale
+for (i in seq_along(preds)) {
+  polygon(
+    c(exp(new_data[[i]]$log_tscent), rev(exp(new_data[[i]]$log_tscent))),
+    c(
+      exp(preds[[i]]$fit + 1.96 * preds[[i]]$se.fit),
+      rev(exp(preds[[i]]$fit - 1.96 * preds[[i]]$se.fit))
+    ),
+    col = adjustcolor(i, alpha.f = 0.15),
+    border = FALSE
+  )
+}
+
+# Draw regression lines on data scale
+for (i in seq_along(preds)) {
+  lines(exp(new_data[[i]]$log_tscent), exp(preds[[i]]$fit), col = i)
+}
+
+# NOTE: Plots were saved using RStudio/Positron interface
 
 
 # ===================================
@@ -132,7 +178,7 @@ params[4, 2] <- params[1, 2] + params[4, 2]
 # Write parameters to file
 write_csv(params, params_path)
 
-# Define function to return preditions on data scale for a given group
+# Define function to return preditions on data scale for a value of tscent
 make_pred <- function(x_in) {
   # Ensure that each population is paired with the position of the parameter in
   # the params tibble
@@ -149,73 +195,3 @@ make_pred <- function(x_in) {
   rownames(estimates) <- levels(df$Pop)
   estimates
 }
-
-# TODO: get new predictions for text, IQR?
-# Write example calculations into a file
-cat("", file = example_path)  # Clear the file
-
-# Loop through populations
-for (i in levels(df$Pop)) {
-  # Get smallest and largest observed values for tscent
-  ranges <- df |>
-    filter(Pop == i) |>
-    pull(tscent) |>
-    range()
-
-  # Populate file with predictions on data scale
-  cat(paste0(i, "\n"), file = example_path, append = TRUE)
-  for (j in ranges) {
-    cat(
-      paste0("tscent: ", j, "\tprediction: ", make_pred(j, i), "\n"),
-      file = example_path,
-      append = TRUE
-    )
-  }
-}
-
-
-# =========
-# DRAW PLOT
-# =========
-
-# Create plot on data scale
-plot(
-  df$tscent,
-  df$fitness,
-  xlab = "Total floral scent emission (ng/L/h)",
-  ylab = "Fitness",
-  col = adjustcolor(seq_along(levels(df$Pop)), alpha.f = 0.4),
-  pch = 19,
-)
-
-# Draw legend
-legend(
-  "topleft",
-  legend = levels(df$Pop),
-  col = adjustcolor(seq_along(levels(df$Pop)), alpha.f = 0.4),
-  pch = 19,
-  bty = "n",
-  horiz = TRUE,
-  title = "Population",
-  inset = 0.02
-)
-
-# Draw 95% CI ribbons on data scale
-for (i in seq_along(preds)) {
-  polygon(
-    c(exp(new_data[[i]]$log_tscent), rev(exp(new_data[[i]]$log_tscent))),
-    c(
-      exp(preds[[i]]$fit + 1.96 * preds[[i]]$se.fit),
-      rev(exp(preds[[i]]$fit - 1.96 * preds[[i]]$se.fit))
-    ),
-    col = adjustcolor(i, alpha.f = 0.15),
-    border = FALSE
-  )
-}
-
-# Draw regression lines on data scale
-for (i in seq_along(preds)) {
-  lines(exp(new_data[[i]]$log_tscent), exp(preds[[i]]$fit), col = i)
-}
-
-# NOTE: Plots were saved using RStudio/Positron interface

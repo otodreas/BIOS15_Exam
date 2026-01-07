@@ -10,7 +10,7 @@ format:
     documentclass: article
     geometry:
       - margin=2.5cm
-    mainfont: Helvetica Neue
+    # mainfont: Helvetica Neue
     monofont: Menlo
 
 execute:
