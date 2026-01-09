@@ -43,10 +43,7 @@ df <- as_tibble(
   mutate(log_fitness = log(fitness))  # Create log_fitness column
 
 # NOTE: one row is dropped for 0 values
-
 # NOTE: Elasticity = for a 1% change in x (tscent), a x% change in y (fitness)
-# is expected ("Percent change in y per percent change in x")
-# TODO: double check with course literature
 
 
 # ==================================
@@ -75,8 +72,6 @@ for (i in seq_along(new_data)) {
   preds[[i]] <- predict(
     m,
     newdata = new_data[[i]],
-    
-    # TODO: check if theres a way to generate predictions on data scale
     type = "response",  # Calculate predictions on response scale
     se.fit = TRUE,
     re.form = NA  # Do not include random effects in predictions
@@ -95,7 +90,7 @@ plot(
   df$tscent,
   df$fitness,
   xlab = "Total floral scent emission (ng/L/h)",
-  ylab = "Reproductive success",
+  ylab = "Fitness (mg)",
   col = adjustcolor(seq_along(levels(df$Pop)), alpha.f = 0.4),
   pch = 19,
 )
@@ -163,10 +158,10 @@ cat(
 params <- as_tibble(summary(m)$coefficients$cond[, 1:2]) |>  # Get params & SE
   mutate(
     Parameter = c(
-      "PopNR intercept (ln(Fitness))",
-      "Slope (ln(Fitness)/ln(Total floral scent emission (ng/L/h)))",
-      "PopTH intercept (ln(Fitness))",
-      "PopWF intercept (ln(Fitness))"
+      "PopNR intercept (ln(mg))",
+      "Slope (ln(mg))/ln(ng/L/h))",
+      "PopTH intercept (ln(mg))",
+      "PopWF intercept (ln(mg))"
     )
   ) |>  # Create parameter names that make sense and move the column left
   relocate(Parameter)
