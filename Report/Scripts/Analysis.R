@@ -44,7 +44,6 @@ df <- as_tibble(
   mutate(log_fitness = log(fitness))  # Create log_fitness column
 
 # NOTE: one row is dropped for 0 values
-# NOTE: Elasticity = for a 1% change in x (tscent), a x% change in y (fitness)
 
 
 # ==================================
@@ -129,9 +128,9 @@ for (i in seq_along(preds)) {
 # NOTE: Plot was not saved but rendered using Quarto
 
 
-# ===================================
-# BUILD SUMMARY STATISTICS TEXT FILES
-# ===================================
+# ==============================
+# BUILD SUMMARY STATISTICS FILES
+# ==============================
 
 # Assign variances to a vector
 v_part <- c(attr(VarCorr(m)$cond$Block, "stddev")^2, attr(VarCorr(m)$cond, "sc")^2)
@@ -156,7 +155,16 @@ cat(
 )
 
 # Build variance partition tibble
-vpart_clean <- as_tibble(matrix(c("Variance among blocks", round(v_part[1], 2), "Variance within groups", round(v_part[2], 2), "Percent variance explained by block", round(v_part[1] / sum(v_part) * 100, 2)), ncol = 2, byrow = TRUE))
+vpart_clean <- as_tibble(
+  matrix(
+    c(
+      "Variance among blocks", round(v_part[1], 2),
+      "Variance within groups", round(v_part[2], 2),
+      "Percent variance explained by block",
+      round(v_part[1] / sum(v_part) * 100, 2)
+    ), ncol = 2, byrow = TRUE
+  )
+)
 colnames(vpart_clean) <- c("Component", "Variance (mg^2)")
 write_csv(vpart_clean, vpart_path)
 
