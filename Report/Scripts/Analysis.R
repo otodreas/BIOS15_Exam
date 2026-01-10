@@ -126,7 +126,7 @@ for (i in seq_along(preds)) {
   lines(exp(new_data[[i]]$log_tscent), exp(preds[[i]]$fit), col = i)
 }
 
-# NOTE: Plots were saved using RStudio/Positron interface
+# NOTE: Plot was not saved but rendered using Quarto
 
 
 # ===================================
@@ -156,12 +156,12 @@ cat(
 )
 
 # Build variance partition tibble
-vpart_clean <- as_tibble(matrix(c("Variance among blocks", round(v_part[1], 2), "Variance within groups", round(v_part[2], 2), "% variance explained by block", round(v_part[1] / sum(v_part) * 100, 2)), ncol = 2, byrow = TRUE))
+vpart_clean <- as_tibble(matrix(c("Variance among blocks", round(v_part[1], 2), "Variance within groups", round(v_part[2], 2), "Percent variance explained by block", round(v_part[1] / sum(v_part) * 100, 2)), ncol = 2, byrow = TRUE))
 colnames(vpart_clean) <- c("Component", "Variance (mg^2)")
 write_csv(vpart_clean, vpart_path)
 
 # Build parameters tibble
-params <- as_tibble(signif(summary(m)$coefficients$cond[, 1:2], 2)) |>  # Get params & SE
+params <- as_tibble(round(summary(m)$coefficients$cond[, 1:2], 2)) |>  # Get params & SE
   mutate(
     Parameter = c(
       "NR intercept (ln(mg))",

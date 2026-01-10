@@ -16,7 +16,7 @@ log(fitness) ~ log(floral scent emission) + population + (1|block)
 
 # Results
 
-The whole model (both fixed and random effects) fitted to the data explained 26.0% of the variance in fitness across the dataset (pseudo $r^2 = 0.260$). 18.6% of the variance in fitness was explained by the experimental block (Table 1). Fitness was predicted to increased by 0.155% for each 1% increase in total scent emission ($elasticity = 0.155 \pm 0.051 \: mg/ng/L/h$, Table 2, Figure 1). At any given total scent emission, population WF had the highest predicted fitness, followed by population NR and TH, in descending order (Table 2, Figure 1). On the data scale, this meant that at a floral scent emission of $1.72 \: ng/L/h$ (the bounds of the first quartile), the predicted fitness was 68.5, 70.6, and 73.5 $mg$ for populations TH, NR, and WF respectively. At a floral scent emission of $7.80 \: ng/L/h$ (the bounds of the third quartile), the predicted fitness was 86.7, 89.2, and 92.9 $mg$ for populations TH, NR, and WF respectively. In other words, an increase in fitness of 18.1, 18.7, and 19.4 $mg$ was predicted by the model across the interquartile range of total floral scent.
+The whole model (both fixed and random effects) fitted to the data explained 26.0\% of the variance in fitness across the dataset (conditional pseudo-R-squared = 0.260$). $18.6\%$ of the variance in fitness was explained by the experimental block (Table 1). Fitness was predicted to increased by 0.155\% for each 1\% increase in total scent emission ($elasticity = 0.16 \pm 0.05 \: mg/ng/L/h$, Table 2, Figure 1). At any given total scent emission, population WF had the highest predicted fitness, followed by population NR and TH, in descending order (Table 2, Figure 1). On the data scale, this meant that at a floral scent emission of $1.72 \: ng/L/h$ (the bounds of the first quartile), the predicted fitness was 68.5, 70.6, and 73.5 $mg$ for populations TH, NR, and WF respectively. At a floral scent emission of $7.80 \: ng/L/h$ (the bounds of the third quartile), the predicted fitness was 86.7, 89.2, and 92.9 $mg$ for populations TH, NR, and WF respectively. In other words, an increase in fitness of 18.1, 18.7, and 19.4 $mg$ was predicted by the model across the interquartile range of total floral scent.
 
 ```{r}
 #| file: Scripts/Utils/Table1.R
@@ -28,18 +28,16 @@ The whole model (both fixed and random effects) fitted to the data explained 26.
 ```
 
 ```{r}
-#| fig-cap: "CAP"
+#| fig-cap: "Effect of total floral scent emission and population on fitness (random effects not included in predictions) shown on the data scale. Ribbons represent 95% confidence intervals."
 #| file: Scripts/Analysis.R
 #| echo: false
-#| fig-width: 5
-#| fig-height: 5
+#| fig-width: 4.5
+#| fig-height: 4.5
 ```
-
-TODO: Table 1, random effects TODO: Table 2, model parameter estimates
 
 # Conclusions
 
-The analysis presented in this report supports the hypothesis that increased floral scent emission increases fitness of *P. digitalis*. The increase was small but noticable at 0.15% increase in fitness per 1% increase in total scent emission. We found that the populations were relatively similar in how total scent emission affected fitness, but that fitness was generally the fighest for WF and the lowest for TH. We also found that a fair share of variance was represented by the experimental blocks, suggesting that the design captured the variance within groups to a large extent. In conclusion, total scent emission had a small but noticable effect on the fitness of plants, and populations were generally quite similar in regards to this relationship.
+The analysis presented in this report supports the hypothesis that increased floral scent emission increases fitness of *P. digitalis*. The increase was small but noticable at 0.15\% increase in fitness per 1\% increase in total scent emission. We found that the populations were relatively similar in how total scent emission affected fitness, but that fitness was generally the fighest for WF and the lowest for TH. We also found that a fair share of variance was represented by the experimental blocks, suggesting that the design captured the variance within groups to a large extent. In conclusion, total scent emission had a small but noticable effect on the fitness of plants, and populations were generally quite similar in regards to this relationship.
 
 # Appendix
 

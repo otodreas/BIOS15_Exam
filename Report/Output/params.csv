@@ -1,5 +1,5 @@
 Parameter,Estimate,Std. Error
-Slope (ln(mg))/ln(ng/L/h)),0.16,0.051
-NR intercept (ln(mg)),4.2,0.12
-TH intercept (ln(mg)),4.171,0.13
-WF intercept (ln(mg)),4.24,0.13
+Slope (ln(mg))/ln(ng/L/h)),0.16,0.05
+NR intercept (ln(mg)),4.17,0.12
+TH intercept (ln(mg)),4.14,0.13
+WF intercept (ln(mg)),4.21,0.13
