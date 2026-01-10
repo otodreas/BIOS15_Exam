@@ -26,6 +26,7 @@ options(MuMIn.noUpdateWarning = TRUE)
 data_path <- here("Report", "Data", "penstemon_copy.txt")
 summary_path <- here("Report", "Output", "summary.txt")
 params_path <- here("Report", "Output", "params.csv")
+vpart_path <- here("Report", "Output", "vpart.csv")
 
 
 # =========
@@ -141,34 +142,40 @@ cat(
     # R^2
     "R^2",
     "\nMarginal (represents variance explained only by the fixed effects): ",
-    r.squaredGLMM(m)[1],
+    round(r.squaredGLMM(m)[1], 2),
     "\nConditional (represents variance explained by the whole model): ",
-    r.squaredGLMM(m)[2],
+    round(r.squaredGLMM(m)[2], 2),
     
     # Variance partitioning
     "\n\nVariance partitioning",
-    "\nVariance among blocks: ", v_part[1],
-    "\nVariance within groups: ", v_part[2],
-    "\n% variance explained by block: ", v_part[1] / sum(v_part) * 100
+    "\nVariance among blocks: ", round(v_part[1], 2),
+    "\nVariance within groups: ", round(v_part[2], 2),
+    "\n% variance explained by block: ", round(v_part[1] / sum(v_part) * 100, 2)
   ),
   file = summary_path
 )
 
+# Build variance partition tibble
+vpart_clean <- as_tibble(matrix(c("Variance among blocks", round(v_part[1], 2), "Variance within groups", round(v_part[2], 2), "% variance explained by block", round(v_part[1] / sum(v_part) * 100, 2)), ncol = 2, byrow = TRUE))
+colnames(vpart_clean) <- c("Component", "Variance (mg^2)")
+write_csv(vpart_clean, vpart_path)
+
 # Build parameters tibble
-params <- as_tibble(summary(m)$coefficients$cond[, 1:2]) |>  # Get params & SE
+params <- as_tibble(signif(summary(m)$coefficients$cond[, 1:2], 2)) |>  # Get params & SE
   mutate(
     Parameter = c(
-      "PopNR intercept (ln(mg))",
+      "NR intercept (ln(mg))",
       "Slope (ln(mg))/ln(ng/L/h))",
-      "PopTH intercept (ln(mg))",
-      "PopWF intercept (ln(mg))"
+      "TH intercept (ln(mg))",
+      "WF intercept (ln(mg))"
     )
   ) |>  # Create parameter names that make sense and move the column left
-  relocate(Parameter)
+  relocate(Parameter) |>
+  slice(2, 1, 3, 4)  # Reorder tibble
 
 # Make every population's intercept absolute rather than relative
-params[3, 2] <- params[1, 2] + params[3, 2]
-params[4, 2] <- params[1, 2] + params[4, 2]
+params[3, 2] <- params[2, 2] + params[3, 2]
+params[4, 2] <- params[2, 2] + params[4, 2]
 
 # Write parameters to file
 write_csv(params, params_path)

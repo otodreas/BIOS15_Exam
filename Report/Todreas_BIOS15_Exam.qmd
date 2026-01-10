@@ -22,6 +22,18 @@ The whole model (both fixed and random effects) fitted to the data explained 26.
 #| file: Scripts/Utils/Table1.R
 #| echo: false
 ```
+```{r}
+#| file: Scripts/Utils/Table2.R
+#| echo: false
+```
+
+```{r}
+#| fig-cap: "CAP"
+#| file: Scripts/Analysis.R
+#| echo: false
+#| fig-width: 5
+#| fig-height: 5
+```
 
 TODO: Table 1, random effects TODO: Table 2, model parameter estimates
 

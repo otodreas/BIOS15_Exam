@@ -1,2 +1,4 @@
+library(here)
 library(knitr)
-kable(mtcars[1:5, 1:5], format = "latex", booktabs = TRUE)
+smry <- read.csv(here("Report", "Output", "vpart.csv"))
+kable(smry, format = "latex", caption = "CAP", booktabs = TRUE)
