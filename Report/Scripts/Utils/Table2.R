@@ -1,4 +1,5 @@
-# This script sources ../Analysis.R and creates table 1
+# This script sources ../Analysis.R and Predictor.R and creates table 1. It
+# sources Predictor.R because a neat parameter table was produced in it.
 
 
 # =====================
@@ -16,27 +17,8 @@ library(knitr)
 # Source analysis file
 source(here("Report", "Scripts", "Analysis.R"), echo = FALSE)
 
-
-# ============
-# BUILD TIBBLE
-# ============
-
-# Get params & SE
-params <- as_tibble(round(summary(m)$coefficients$cond[, 1:2], 2)) |>
-  mutate(
-    Parameter = c(
-      "NR intercept (ln(mg))",
-      "Slope (ln(mg))/ln(ng/L/h))",
-      "TH intercept (ln(mg))",
-      "WF intercept (ln(mg))"
-    )
-  ) |>  # Create parameter names that make sense and move the column left
-  relocate(Parameter) |>
-  slice(2, 1, 3, 4)  # Reorder tibble
-
-# Make every population's intercept absolute rather than relative
-params[3, 2] <- params[2, 2] + params[3, 2]
-params[4, 2] <- params[2, 2] + params[4, 2]
+# Source predictor file to get access to neat parameter estimates
+source(here("Report", "Scripts", "Utils", "Predictor.R"), echo = FALSE)
 
 
 # =================

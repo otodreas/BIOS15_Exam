@@ -51,4 +51,5 @@ rsconnect/
 # DS Store
 **/.DS_Store
 
+# Quarto
 /.quarto/

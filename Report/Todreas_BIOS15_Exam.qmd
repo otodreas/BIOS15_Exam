@@ -65,7 +65,11 @@ root/
     └── Todreas_BIOS15_Exam.pdf
 ```
 
+Note: the tree above is simplified for clarity, with some files omitted.
+
 Below is a copy of `Report/Scripts/Analysis.R` and `Report/Scripts/Utils/Plot.R`.
+
+Feel free to take a look at `Report/Scripts/Utils/Predictor.R`, `Report/Scripts/Utils/Table1.R`, or `Report/Scripts/Utils/Table2.R` if you want to check how I made the tables or generated the example data I used in the report.
 
 ### `Report/Scripts/Analysis.R`
 
