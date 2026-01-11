@@ -50,7 +50,7 @@ make_pred <- function(x_in) {
   # Ensure that each population is paired with the position of the parameter in
   # the params tibble
   estimates <- matrix(nrow = 3, ncol = 2)
-  for (i in seq(levels(df$Pop))) {
+  for (i in seq_along(levels(df$Pop))) {
     estimate <- as.numeric(exp(log(x_in) * params[1, 2] + params[i + 1, 2]))
     estimates[i, ] <- c(x_in, estimate)
   }
