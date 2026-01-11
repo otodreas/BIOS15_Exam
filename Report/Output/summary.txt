@@ -1,8 +1,0 @@
-R^2
-Marginal (represents variance explained only by the fixed effects): 0.09
-Conditional (represents variance explained by the whole model): 0.26
-
-Variance partitioning
-Variance among blocks: 0.05
-Variance within groups: 0.22
-% variance explained by block: 18.58

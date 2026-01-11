@@ -29,7 +29,7 @@ The whole model (both fixed and random effects) fitted to the data explained 26.
 
 ```{r}
 #| fig-cap: "Effect of total floral scent emission and population on fitness (random effects not included in predictions) shown on the data scale. Ribbons represent 95% confidence intervals."
-#| file: Scripts/Analysis.R
+#| file: Scripts/Utils/Plot.R
 #| echo: false
 #| fig-width: 4.5
 #| fig-height: 4.5
@@ -37,7 +37,7 @@ The whole model (both fixed and random effects) fitted to the data explained 26.
 
 # Conclusions
 
-The analysis presented in this report supports the hypothesis that increased floral scent emission increases fitness of *P. digitalis*. The increase was small but noticable at 0.16\% increase in fitness per 1\% increase in total scent emission. We found that the populations were relatively similar in how total scent emission affected fitness, but that fitness was generally the fighest for WF and the lowest for TH. We also found that a fair share of variance was represented by the experimental blocks, suggesting that the design captured the variance within groups to a large extent. In conclusion, total scent emission had a small but noticable effect on the fitness of plants, and populations were generally quite similar in regards to this relationship.
+The analysis presented in this report supports the hypothesis that increased floral scent emission increases fitness of *P. digitalis*. The increase was small but noticable: there was a 0.16\% increase in fitness per 1\% increase in total scent emission. We found that the populations were relatively similar in how total scent emission affected fitness, but that fitness was generally the fighest for WF and the lowest for TH. We also found that a fair share of variance was represented by the experimental blocks, suggesting that the design captured the variance within groups to a large extent. In conclusion, total scent emission had a small but noticable effect on the fitness of plants, and populations were generally quite similar in regards to this relationship. These findings point towards the effect of floral scent emission and how it can affect fruiting success, highlighting the importance of the variable.
 
 # References
 
@@ -54,15 +54,29 @@ The script, data, and the report itself can be found in the GitHub repo at the f
 root/
 └── Report/
     ├── Scripts/
+    │   ├── Utils/
+    │   │   ├── Plot.R
+    │   │   ├── Predictor.R
+    │   │   ├── Table1.R
+    │   │   └── Table2.R
     │   └── Analysis.R
     ├── Data/
     │   └── penstemon_copy.txt
     └── Todreas_BIOS15_Exam.pdf
 ```
 
-Below is a copy of the script for reference
+Below is a copy of `Report/Scripts/Analysis.R` and `Report/Scripts/Utils/Plot.R`.
+
+### `Report/Scripts/Analysis.R`
 
 ```{r}
 #| file: Scripts/Analysis.R
+#| eval: false
+```
+
+### `Report/Scripts/Utils/Plot.R`
+
+```{r}
+#| file: Scripts/Utils/Plot.R
 #| eval: false
 ```

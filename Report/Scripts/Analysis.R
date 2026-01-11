@@ -1,8 +1,6 @@
 # This script fits a GLM to the dataset provided. The goal of the analysis is
-# to determine how total floral scent emission effects a plant's fitness. Users 
-# who do not clone the entire repo but instead just download the script will
-# need to provide custom filepaths. The data file can be found at
-# root/Report/Data/penstemon_copy.txt
+# to determine how total floral scent emission effects a plant's fitness.
+# Scripts that generate plots and tables can be found in /Utils/
 
 
 # =====================
@@ -22,11 +20,8 @@ library(MuMIn)
 # original model call have the same values as when the model was fitted
 options(MuMIn.noUpdateWarning = TRUE)
 
-# Set filepaths
+# Set data filepath
 data_path <- here("Report", "Data", "penstemon_copy.txt")
-summary_path <- here("Report", "Output", "summary.txt")
-params_path <- here("Report", "Output", "params.csv")
-vpart_path <- here("Report", "Output", "vpart.csv")
 
 
 # =========
@@ -80,128 +75,8 @@ for (i in seq_along(new_data)) {
 
 names(preds) <- levels(df$Pop)
 
+# Get r^2
+rsq <- r.squaredGLMM(m)
 
-# =========
-# DRAW PLOT
-# =========
-
-# Create plot on data scale
-plot(
-  df$tscent,
-  df$fitness,
-  xlab = "Total floral scent emission (ng/L/h)",
-  ylab = "Fitness (mg)",
-  col = adjustcolor(seq_along(levels(df$Pop)), alpha.f = 0.4),
-  pch = 19,
-)
-
-# Draw legend
-legend(
-  "topleft",
-  legend = levels(df$Pop),
-  col = adjustcolor(seq_along(levels(df$Pop)), alpha.f = 0.4),
-  pch = 19,
-  bty = "n",
-  horiz = TRUE,
-  title = "Population",
-  inset = 0.02
-)
-
-# Draw 95% CI ribbons on data scale
-for (i in seq_along(preds)) {
-  polygon(
-    c(exp(new_data[[i]]$log_tscent), rev(exp(new_data[[i]]$log_tscent))),
-    c(
-      exp(preds[[i]]$fit + 1.96 * preds[[i]]$se.fit),
-      rev(exp(preds[[i]]$fit - 1.96 * preds[[i]]$se.fit))
-    ),
-    col = adjustcolor(i, alpha.f = 0.15),
-    border = FALSE
-  )
-}
-
-# Draw regression lines on data scale
-for (i in seq_along(preds)) {
-  lines(exp(new_data[[i]]$log_tscent), exp(preds[[i]]$fit), col = i)
-}
-
-# NOTE: Plot was not saved but rendered using Quarto
-
-
-# ==============================
-# BUILD SUMMARY STATISTICS FILES
-# ==============================
-
-# Assign variances to a vector
+# Perform variance partitioning (v_part called in Utils/Table1.R)
 v_part <- c(attr(VarCorr(m)$cond$Block, "stddev")^2, attr(VarCorr(m)$cond, "sc")^2)
-
-# Build summary file
-cat(
-  paste0(
-    # R^2
-    "R^2",
-    "\nMarginal (represents variance explained only by the fixed effects): ",
-    round(r.squaredGLMM(m)[1], 2),
-    "\nConditional (represents variance explained by the whole model): ",
-    round(r.squaredGLMM(m)[2], 2),
-    
-    # Variance partitioning
-    "\n\nVariance partitioning",
-    "\nVariance among blocks: ", round(v_part[1], 2),
-    "\nVariance within groups: ", round(v_part[2], 2),
-    "\n% variance explained by block: ", round(v_part[1] / sum(v_part) * 100, 2)
-  ),
-  file = summary_path
-)
-
-# Build variance partition tibble
-vpart_clean <- as_tibble(
-  matrix(
-    c(
-      "Variance among blocks", round(v_part[1], 2),
-      "Variance within groups", round(v_part[2], 2),
-      "Percent variance explained by block",
-      round(v_part[1] / sum(v_part) * 100, 2)
-    ), ncol = 2, byrow = TRUE
-  )
-)
-colnames(vpart_clean) <- c("Component", "Variance (mg^2)")
-write_csv(vpart_clean, vpart_path)
-
-# Build parameters tibble
-params <- as_tibble(round(summary(m)$coefficients$cond[, 1:2], 2)) |>  # Get params & SE
-  mutate(
-    Parameter = c(
-      "NR intercept (ln(mg))",
-      "Slope (ln(mg))/ln(ng/L/h))",
-      "TH intercept (ln(mg))",
-      "WF intercept (ln(mg))"
-    )
-  ) |>  # Create parameter names that make sense and move the column left
-  relocate(Parameter) |>
-  slice(2, 1, 3, 4)  # Reorder tibble
-
-# Make every population's intercept absolute rather than relative
-params[3, 2] <- params[2, 2] + params[3, 2]
-params[4, 2] <- params[2, 2] + params[4, 2]
-
-# Write parameters to file
-write_csv(params, params_path)
-
-# Define function to return preditions on data scale for a value of tscent
-make_pred <- function(x_in) {
-  # Ensure that each population is paired with the position of the parameter in
-  # the params tibble
-  pops <- list(1, 3, 4)
-  names(pops) <- levels(df$Pop)
-  estimates <- matrix(nrow = 3, ncol = 2)
-  row <- 0
-  for (i in levels(df$Pop)) {
-    row <- row + 1
-    estimate <- as.numeric(exp(log(x_in) * params[2, 2] + params[pops[[i]], 2]))
-    estimates[row, ] <- c(x_in, estimate)
-  }
-  colnames(estimates) <- c("Input", "Prediction")
-  rownames(estimates) <- levels(df$Pop)
-  estimates
-}
