@@ -1,6 +1,7 @@
 # This script sources ../Analysis.R and defines a custom function that the user
 # can use to quickly make predictions on the data scale based on input values
-# on the data scale in the R console. 
+# on the data scale in the R console. The predictions used as examples in the
+# report are printed to the console when you run this script
 
 
 # =====================
@@ -70,4 +71,5 @@ pred_iqr3 <- make_pred(as.numeric(summary(df$tscent)[5]))
 pred_iqr1
 pred_iqr3
 pred_iqr3 - pred_iqr1
-# Intentionally blank line to avoid printing variables in report
+# Intentionally blank lines to avoid printing variables when the file is
+# sourced in the report
