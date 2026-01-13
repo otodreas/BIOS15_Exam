@@ -1,5 +1,5 @@
-# This script sources ../Analysis.R and Predictor.R and creates table 1. It
-# sources Predictor.R because a neat parameter table was produced in it.
+# This script sources ../Analysis.R and Predict.R and creates table 1. It
+# sources Predict.R because a neat parameter table was produced in it.
 
 
 # =====================
@@ -17,8 +17,8 @@ library(knitr)
 # Source analysis file
 source(here("Report", "Scripts", "Analysis.R"), echo = FALSE)
 
-# Source predictor file to get access to neat parameter estimates
-source(here("Report", "Scripts", "Utils", "Predictor.R"), echo = FALSE)
+# Source predict file to get access to neat parameter estimates
+source(here("Report", "Scripts", "Utils", "Predict.R"), echo = FALSE)
 
 
 # =================

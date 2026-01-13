@@ -8,8 +8,10 @@
 # Clear variables
 rm(list = ls())
 
-# Source analysis file
+# Load libraries
 library(here)
+
+# Source analysis file
 source(here("Report", "Scripts", "Analysis.R"), echo = FALSE)
 
 
@@ -39,10 +41,13 @@ legend(
   inset = 0.02
 )
 
-# Draw 95% CI ribbons on data scale
+# Draw 95% CI ribbons on data scale for each prediction
 for (i in seq_along(preds)) {
   polygon(
+    # x-coordinates of ribbon
     c(exp(new_data[[i]]$log_tscent), rev(exp(new_data[[i]]$log_tscent))),
+    
+    # y-coordinates of ribbon
     c(
       exp(preds[[i]]$fit + 1.96 * preds[[i]]$se.fit),
       rev(exp(preds[[i]]$fit - 1.96 * preds[[i]]$se.fit))

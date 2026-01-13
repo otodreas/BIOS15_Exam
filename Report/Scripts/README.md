@@ -5,11 +5,11 @@ The scripts in this folder are all the scripts I used to make my analyses, figur
 ```         
 Scripts/
 ├── Utils/
-│   ├── Plot.R       # Make plots
-│   ├── Predictor.R  # Define function that makes predictions on data scale
-│   ├── Table1.R     # Make table 1
-│   └── Table2.R     # Make table 2
-└── Analysis.R       # Fit model
+│   ├── Plot.R     # Make plots
+│   ├── Predict.R  # Define function that makes predictions on data scale
+│   ├── Table1.R   # Make table 1
+│   └── Table2.R   # Make table 2
+└── Analysis.R     # Fit model
 ```
 
 All the scripts in `Scripts/Utils/` start by sourcing `Scripts/Analysis.R`.

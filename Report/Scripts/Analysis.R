@@ -12,7 +12,7 @@ rm(list = ls())
 
 # Load packages
 library(here)
-library(tidyverse)
+library(dplyr)
 library(glmmTMB)
 library(MuMIn)
 
@@ -29,9 +29,7 @@ data_path <- here("Report", "Data", "penstemon_copy.txt")
 # =========
 
 # Load raw data
-df <- as_tibble(
-  read.table(data_path, header = TRUE)
-) |>
+df <- as_tibble(read.table(data_path, header = TRUE)) |>
   select(Pop, Block, tscent, fitness) |>  # Select relevant columns
   mutate(across(c(Pop, Block), as.factor)) |>  # Make grouped variables factors
   filter(tscent != 0 & fitness != 0) |>  # Drop values whose log is undefined
@@ -68,7 +66,7 @@ for (i in seq_along(new_data)) {
     m,
     newdata = new_data[[i]],
     type = "response",  # Calculate predictions on response scale
-    se.fit = TRUE,
+    se.fit = TRUE,  # Save standard error fit for each input
     re.form = NA  # Do not include random effects in predictions
   )
 }

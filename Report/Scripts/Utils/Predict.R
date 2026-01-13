@@ -32,8 +32,8 @@ params <- as_tibble(round(summary(m)$coefficients$cond[, 1:2], 2)) |>
       "TH intercept (ln(mg))",
       "WF intercept (ln(mg))"
     )
-  ) |>  # Create parameter names that make sense and move the column left
-  relocate(Parameter) |>
+  ) |>  # Create parameter names that make sense
+  relocate(Parameter) |>  # Move the parameters column left
   slice(2, 1, 3, 4)  # Reorder tibble
 
 # Make every population's intercept absolute rather than relative
@@ -47,11 +47,15 @@ params[4, 2] <- params[2, 2] + params[4, 2]
 
 # Define function to return preditions on data scale for a value of tscent
 make_pred <- function(x_in) {
-  # Ensure that each population is paired with the position of the parameter in
-  # the params tibble
+  # Create estimates matrix
   estimates <- matrix(nrow = 3, ncol = 2)
+
+  # Generate estimates for each population
   for (i in seq_along(levels(df$Pop))) {
+    # Estimate on data scale
     estimate <- as.numeric(exp(log(x_in) * params[1, 2] + params[i + 1, 2]))
+    
+    # Add input and output to row of estimates matrix
     estimates[i, ] <- c(x_in, estimate)
   }
   colnames(estimates) <- c("Input", "Prediction")
@@ -68,8 +72,8 @@ make_pred <- function(x_in) {
 pred_iqr1 <- make_pred(as.numeric(summary(df$tscent)[2]))
 pred_iqr3 <- make_pred(as.numeric(summary(df$tscent)[5]))
 
+# Return to console
 pred_iqr1
 pred_iqr3
 pred_iqr3 - pred_iqr1
-# Intentionally blank lines to avoid printing variables when the file is
-# sourced in the report
+# Left blank intentionally to avoid printing when sourced in report
