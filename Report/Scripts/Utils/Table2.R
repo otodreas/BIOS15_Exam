@@ -20,6 +20,11 @@ source(here("Report", "Scripts", "Analysis.R"), echo = FALSE)
 # Source predict file to get access to neat parameter estimates
 source(here("Report", "Scripts", "Utils", "Predict.R"), echo = FALSE)
 
+# Make joint param & SE column
+params <- params |>
+  mutate("Estimate ± SE" = paste(Estimate, "±", `Std. Error`)) |>
+  select(Parameter, `Estimate ± SE`)
+
 
 # =================
 # BUILD LATEX TABLE
@@ -28,7 +33,6 @@ source(here("Report", "Scripts", "Utils", "Predict.R"), echo = FALSE)
 kable(
   params,
   format = "latex",
-  col.names = c("Parameter", "Estimate", "Standard error"),
   caption = "Parameter estimates and standard errors for the fixed effects of the generalized linear mixed model given on the link scale. Conditional pseudo-R-squared = 0.26.",
   booktabs = TRUE
 )
